@@ -4,6 +4,15 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 # Compute Pearson correlation between users
 def pearson_similarity_matrix(ratings):
+    """
+    Computes the Pearson correlation matrix between users based on their ratings.
+
+    Parameters:
+    - ratings (DataFrame): DataFrame containing user ratings with columns: 'userId', 'movieId', 'rating'.
+
+    Returns:
+    - correlation_df (DataFrame): DataFrame containing the Pearson correlation matrix between users.
+    """
     user_movie_matrix = ratings.pivot_table(index='userId', columns='movieId', values='rating').fillna(0)
     correlation_matrix = np.corrcoef(user_movie_matrix)
     np.fill_diagonal(correlation_matrix, 0)  # Setting self-similarity to 0
@@ -12,6 +21,15 @@ def pearson_similarity_matrix(ratings):
 
 # Compute cosine similarity between users
 def cosine_similarity_matrix(ratings):
+    """
+    Computes the cosine similarity matrix between users based on their ratings.
+
+    Parameters:
+    - ratings (DataFrame): DataFrame containing user ratings with columns: 'userId', 'movieId', 'rating'.
+
+    Returns:
+    - similarity_df (DataFrame): DataFrame containing the cosine similarity matrix between users.
+    """
     user_movie_matrix = ratings.pivot_table(index='userId', columns='movieId', values='rating').fillna(0)
    
     similarity_matrix = cosine_similarity(user_movie_matrix)
@@ -21,16 +39,49 @@ def cosine_similarity_matrix(ratings):
     return similarity_df
 
 # Get top similar users based on similarity
-def get_top_similar_users(similarity_df, target_user, n=10):
+def get_top_similar_users(similarity_df, target_user, n=40):
+    """
+    Retrieves the top similar users for a target user based on a similarity matrix.
+
+    Parameters:
+    - similarity_df (DataFrame): DataFrame containing the similarity matrix between users.
+    - target_user (int): The ID of the target user.
+    - n (int): Number of top similar users to retrieve. Default is 10.
+
+    Returns:
+    - similar_users (Series): Series containing the top similar users for the target user.
+    """
     similar_users = similarity_df[target_user].sort_values(ascending=False)[0:n]
-    print("Top 10 most similar users for target user with ID:",target_user,"\n",similar_users.index,"\n")
+    top_similar_users = similar_users.head(10)
+    print("Top 10 most similar users for target user with ID:",target_user,"\n",top_similar_users.index,"\n")
     return similar_users
 
 def get_user_ratings(ratings, user):
+    """
+    Retrieves ratings of a specific user from the ratings DataFrame.
+
+    Parameters:
+    - ratings (DataFrame): DataFrame containing user ratings with columns: 'userId', 'movieId', 'rating'.
+    - user (int): The ID of the user.
+
+    Returns:
+    - user_ratings (DataFrame): DataFrame containing ratings of the specified user.
+    """
     return ratings[ratings['userId'] == user]
 
 # Predict movie ratings for target user
 def predict_ratings(ratings, similarity_df, target_user):
+    """
+    Predicts movie ratings for a target user based on collaborative filtering.
+
+    Parameters:
+    - ratings (DataFrame): DataFrame containing user ratings with columns: 'userId', 'movieId', 'rating'.
+    - similarity_df (DataFrame): DataFrame containing the similarity matrix between users.
+    - target_user (int): The ID of the target user.
+
+    Returns:
+    - predicted_ratings (dict): Dictionary containing predicted ratings for movies.
+    """
     target_user_ratings = ratings[ratings['userId'] == target_user]
     target_user_mean_rating = target_user_ratings['rating'].mean()
     
@@ -72,7 +123,17 @@ def predict_ratings(ratings, similarity_df, target_user):
     return predicted_ratings
 
 # Recommend top movies for target user
-def recommended_movies(predictions, rated_movies, n=10):
+def recommend_movies(predictions, n=10):
+    """
+    Recommends top movies for a user based on predicted ratings.
+
+    Parameters:
+    - predictions (dict): Dictionary containing predicted ratings for movies.
+    - n (int): Number of top movies to recommend. Default is 10.
+
+    Returns:
+    - top_movies (list): List of tuples containing top recommended movies and their predicted ratings.
+    """
     all_movies = []   
     # Combine rated and recommended movies
     all_movies += [(movie, rating) for movie, rating in predictions.items() if movie not in [title for title, _ in rated_movies]]
