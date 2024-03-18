@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
+import itertools
 
 # Compute Pearson correlation between users
 def pearson_similarity_matrix(ratings):
@@ -205,13 +206,29 @@ def least_misery_method(group_ratings, n=10):
     for movie_title, rating in top_n_movies:
         print("Movie title:", movie_title, "- Predicted Rating:", round(rating, 2))
 
-def disagreement_weighted_group_recommendations(ratings, similarity_df, group_users):
-    group_ratings = ratings[ratings['userId'].isin(group_users)]
-    group_std_rating = group_ratings.groupby('movieId')['rating'].std().fillna(0)  # Calcola la deviazione standard delle valutazioni del film nel gruppo
-    group_mean_rating = group_ratings.groupby('movieId')['rating'].mean()
+def pairwise_disagreement(filtered_df,movie_id,group):
     
-    weighted_group_ratings = group_mean_rating * (1 - group_std_rating)  # Utilizza la deviazione standard come peso inverso
-    return weighted_group_ratings.sort_values(ascending=False).head(10)
+    num_members = len(group)
+
+    abs_sum = 0
+
+    for user_a,user_b in itertools.combinations(group,2):
+        if user_a != user_b:
+            rating_a = filtered_df.loc[(filtered_df['userId'] == user_a) & (filtered_df['movieId'] == movie_id), 'rating'].values[0]
+            rating_b = filtered_df.loc[(filtered_df['userId'] == user_b) & (filtered_df['movieId'] == movie_id), 'rating'].values[0]
+            abs_sum += abs(rating_a-rating_b)
+
+    return (2/(num_members*(num_members-1)))*abs_sum
+
+def average_pairwise_disagreement(filtered_df,movie_id,group,w):
+    
+    movie_ratings = filtered_df[filtered_df['movieId'] == movie_id]['rating']
+    
+    average_rating = movie_ratings.mean() #Calculate the average
+    
+    disagreement_value = pariwise_disagreement(filtered_df,movie_id,group)
+    
+    return ((1-w) * average_rating)+(w * disagreement_value)
 
 
 # Load dataset
