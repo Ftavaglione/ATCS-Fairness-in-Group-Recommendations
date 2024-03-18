@@ -2,8 +2,6 @@ import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 
-import time
-
 # Compute Pearson correlation between users
 def pearson_similarity_matrix(ratings):
     user_movie_matrix = ratings.pivot_table(index='userId', columns='movieId', values='rating').fillna(0)
@@ -101,7 +99,6 @@ def get_group_ratings(group_users, ratings):
         # Combine rated and recommended movies
         all_movies += [(movie, rating) for movie, rating in predictions.items() if movie not in [title for title, _ in rated_movies]]
         all_movies += rated_movies
-        #DA MODIFICARE
 
         for movie, rating in all_movies:
             if movie not in group_ratings:
@@ -147,7 +144,6 @@ def least_misery_method(group_ratings, n=10):
     for movie_title, rating in top_n_movies:
         print("Movie title:", movie_title, "- Predicted Rating:", round(rating, 2))
 
-
 def disagreement_weighted_group_recommendations(ratings, similarity_df, group_users):
     group_ratings = ratings[ratings['userId'].isin(group_users)]
     group_std_rating = group_ratings.groupby('movieId')['rating'].std().fillna(0)  # Calcola la deviazione standard delle valutazioni del film nel gruppo
@@ -158,8 +154,8 @@ def disagreement_weighted_group_recommendations(ratings, similarity_df, group_us
 
 
 # Load dataset
-ratings = pd.read_csv('ratings.csv',usecols=range(3))
-movies = pd.read_csv('movies.csv',usecols=range(2))
+ratings = pd.read_csv('ml-latest-small/ratings.csv',usecols=range(3))
+movies = pd.read_csv('ml-latest-small/movies.csv',usecols=range(2))
     
 ratings = pd.merge(ratings, movies)
 
@@ -167,7 +163,7 @@ ratings = pd.merge(ratings, movies)
 similarity_df = pearson_similarity_matrix(ratings)
     
 # Select group of members g (e.g. users with ID 1,2,3)
-group_users = [1,2]
+group_users = [1,2,3]
 group_ratings = get_group_ratings(group_users, ratings)
 
 average_method(group_ratings)

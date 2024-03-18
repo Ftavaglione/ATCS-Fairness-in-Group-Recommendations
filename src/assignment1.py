@@ -78,8 +78,8 @@ def recommend_movies(predictions, n=10):
 
 
 # Load dataset
-ratings = pd.read_csv('ratings.csv',usecols=range(3))
-movies = pd.read_csv('movies.csv',usecols=range(2))
+ratings = pd.read_csv('ml-latest-small/ratings.csv',usecols=range(3))
+movies = pd.read_csv('ml-latest-small/movies.csv',usecols=range(2))
     
 ratings = pd.merge(ratings, movies)
 
