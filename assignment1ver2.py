@@ -26,17 +26,28 @@ def get_top_similar_users(similarity_df, target_user, n=10):
     print("Top 10 most similar users for target user with ID:",target_user,"\n",similar_users.index,"\n")
     return similar_users
 
+def get_user_ratings(ratings, user):
+    return ratings[ratings['userId'] == user]
+
 # Predict movie ratings for target user
 def predict_ratings(ratings, similarity_df, target_user):
     target_user_ratings = ratings[ratings['userId'] == target_user]
     target_user_mean_rating = target_user_ratings['rating'].mean()
     
     predicted_ratings = {}
+    similar_users_mean_rating={}
 
-    unseen_movies = ratings[~ratings['movieId'].isin(target_user_ratings['movieId'])][['movieId', 'title']].drop_duplicates()
     similar_users = get_top_similar_users(similarity_df, target_user)
-    
-    for index, row in unseen_movies.iterrows():
+
+    similar_users_seen_movies = ratings[ratings['userId'].isin(similar_users.index)]
+    unseen_movies = similar_users_seen_movies[~similar_users_seen_movies['movieId'].isin(target_user_ratings['movieId'])][['movieId', 'title']].drop_duplicates() 
+
+    for user, similarity in similar_users.items():
+        user_ratings = get_user_ratings(ratings, user)
+        similar_users_mean_rating[user] = user_ratings['rating'].mean()
+
+    for _, row in unseen_movies.iterrows():
+        
         movie_id = row['movieId']
         movie_title = row['title']
         
@@ -44,19 +55,20 @@ def predict_ratings(ratings, similarity_df, target_user):
         similarity_sum = 0
         
         for user, similarity in similar_users.items():
-            user_ratings = ratings[ratings['userId'] == user]
-            user_mean_rating = user_ratings['rating'].mean()
+            
+            user_ratings = get_user_ratings(ratings, user)
+            
             user_rating = user_ratings[user_ratings['movieId'] == movie_id]['rating']
             
             if not user_rating.empty:
                 user_rating = user_rating.values[0]
-                weighted_sum += similarity * (user_rating - user_mean_rating)
+                weighted_sum += similarity * (user_rating - similar_users_mean_rating[user])
                 similarity_sum += similarity
                 
         if similarity_sum != 0:
             predicted_rating = target_user_mean_rating + (weighted_sum / similarity_sum)
-            predicted_ratings[movie_title] = predicted_rating
-            
+            predicted_ratings[movie_title] = predicted_rating      
+
     return predicted_ratings
 
 # Recommend top movies for target user
