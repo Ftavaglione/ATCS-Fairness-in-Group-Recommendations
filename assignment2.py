@@ -60,9 +60,24 @@ def predict_ratings(ratings, similarity_df, target_user):
     return predicted_ratings
 
 # Recommend top movies for target user
-def recommend_movies(predictions, n=10):
-    top_movies = sorted(predictions.items(), key=lambda x: x[1], reverse=True)[:n]
-    return top_movies
+#def recommend_movies(predictions, n=10):
+  #  top_movies = sorted(predictions.items(), key=lambda x: x[1], reverse=True)[:n]
+  #  return top_movies
+
+# Recommend top movies for target user
+def recommend_movies(predictions, rated_movies, n=10):
+    all_movies = []   
+    # Combine rated and recommended movies
+    all_movies += [(movie, rating) for movie, rating in predictions.items() if movie not in [title for title, _ in rated_movies]]
+    all_movies += rated_movies
+    
+    # Sort the combined list in descending order of ratings
+    all_movies = sorted(all_movies, key=lambda x: x[1], reverse=True)
+    
+    # Select top N movies
+    top_n_movies = all_movies[:n]
+
+    return top_n_movies
 
 
 # Load dataset
@@ -71,23 +86,21 @@ movies = pd.read_csv('movies.csv',usecols=range(2))
     
 ratings = pd.merge(ratings, movies)
 
-# Print the first rows
-print(ratings.head())
-print("Total number of rows:", len(ratings),"\n")
-
-# Compute similarity matrix
 #similarity_df = cosine_similarity_matrix(ratings)
 similarity_df = pearson_similarity_matrix(ratings)
     
-# Select target user (e.g. user with ID 1)
+# Select group g members (e.g. users with ID 1,2,3)
 target_user = 1
+
+rated_movies = ratings[ratings['userId'] == target_user][['title', 'rating']]
+rated_movies = [(row['title'], row['rating']) for index, row in rated_movies.iterrows()]
     
 # Predict ratings for target user
 predictions = predict_ratings(ratings, similarity_df, target_user)
     
 # Recommend top movies for target user
-recommended_movies = recommend_movies(predictions)
+recommended_movies = recommend_movies(predictions, rated_movies)
     
-print("Top 10 recommended movies for target user with ID: ", target_user)
+print("Top 10 recommended movies for target user with ID:", target_user)
 for movie_title, predicted_rating in recommended_movies:
         print("Movie title:", movie_title, "- Predicted Rating:", round(predicted_rating, 2))
