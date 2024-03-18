@@ -1,11 +1,11 @@
 # FAIRNESS RECOMMENDATION
 Project for the lectures on **Fairness Recommendation** from the course **Advanced Topics in Computer Science** (ATCS)
 
-## 🧬 Repo structure
+## Repo structure
 - The `/src` folder contains the source code
 - The `/ml-latest-small` folder contains the [Movielens](https://grouplens.org/datasets/movielens/) (recommended for education and development) dataset files containg 100k rows.
 
-## 📃 Assignments
+## Assignments
 ### Assignment 1: User-based Collaborative Filtering Recommendations
 
 The goal of the first assignment is to implement a user-based collaborative filtering
