@@ -44,7 +44,7 @@ pip install -r requirements.txt
 - `recommend_movies(predictions, n=10)`: Recommends top movies for a user based on predicted ratings.
 
 ## Usage
-1. Load the dataset using `pd.read_csv()` and merge the ratings with movie information.
+1. Load the dataset using `ratings = rs.load()` and merge the ratings with movie information.
 2. Compute the similarity matrix using either Pearson correlation or cosine similarity.
 3. Select a target user.
 4. Predict ratings for the target user.
@@ -56,7 +56,7 @@ pip install -r requirements.txt
 ratings = rs.load()
 
 # Compute similarity matrix
-similarity_df = pearson_similarity_matrix(ratings)
+similarity_df = rs.pearson_similarity_matrix(ratings)
 
 # Select target user
 target_user = 1
