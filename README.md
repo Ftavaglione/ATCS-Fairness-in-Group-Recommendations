@@ -2,7 +2,7 @@
 Project for the lectures on **Fairness Recommendation** from the course **Advanced Topics in Computer Science** (ATCS)
 
 ## Repo structure
-- The `/src` folder contains the source code
+- The `/src` folder contains the source code 
 - The `/ml-latest-small` folder contains the [Movielens](https://grouplens.org/datasets/movielens/) (recommended for education and development) dataset files containg 100k rows.
 
 # Collaborative Filtering Movie Recommendation System
@@ -53,9 +53,7 @@ pip install -r requirements.txt
 ## Example
 ```python
 # Load dataset
-ratings = pd.read_csv('ml-latest-small/ratings.csv', usecols=range(3))
-movies = pd.read_csv('ml-latest-small/movies.csv', usecols=range(2))
-ratings = pd.merge(ratings, movies)
+ratings = rs.load()
 
 # Compute similarity matrix
 similarity_df = pearson_similarity_matrix(ratings)
@@ -64,10 +62,10 @@ similarity_df = pearson_similarity_matrix(ratings)
 target_user = 1
 
 # Predict ratings for target user
-predictions = predict_ratings(ratings, similarity_df, target_user)
+predictions = rs.predict_ratings(ratings, similarity_df, target_user)
 
 # Recommend top movies for target user
-recommended_movies = recommend_movies(predictions)
+recommended_movies = rs.recommend_movies(predictions)
 
 # Print recommended movies
 print("Top 10 recommended movies for target user with ID:", target_user)
@@ -78,6 +76,5 @@ for movie_title, predicted_rating in recommended_movies:
 ## References
 - [MovieLens Latest Small dataset](https://grouplens.org/datasets/movielens/latest/)
 
-Feel free to contribute to this project by forking the repository and submitting pull requests.
 
 If you encounter any issues or have suggestions for improvements, please open an issue in the repository.
