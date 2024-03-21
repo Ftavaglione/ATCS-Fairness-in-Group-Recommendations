@@ -15,12 +15,12 @@ def get_user_rating(user_rating_list, target_user_id):
     """
     for user_id, rating in user_rating_list:
         # Check if the current user_id matches the target_user
-        if user_id == target_user:
+        if user_id == target_user_id:
             # Return the rating if found
             return rating
     return None
 
-def get_group_ratings(group_users, ratings_df, similarity_df):
+def get_group_ratings(group_users, ratings, similarity_df):
     """
     Computes ratings for movies recommended to a group of users using a recommender system.
 
