@@ -46,7 +46,6 @@ def pearson_similarity_matrix(ratings):
     correlation_df.to_csv('pearsonCorrelationMatrix.csv', index=False)
 
     return correlation_df
-    
 
 # Compute cosine similarity between users
 def cosine_similarity_matrix(ratings):
@@ -151,7 +150,6 @@ def predict_ratings(ratings, similarity_df, target_user):
             predicted_ratings[movie_title] = predicted_rating    
 
     return predicted_ratings
-
 
 # Recommend top movies for target user
 def recommend_movies(predictions, n=10):
