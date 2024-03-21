@@ -67,7 +67,7 @@ def average_method(group_ratings, n=10):
 
     print("\nTop 10 recommended movies for group users using the average method:")
     for movie_title, rating in top_n_movies:
-        print("Movie title:", movie_title, "- Predicted Rating:", round(rating, 2))
+        print(movie_title, "- Predicted Rating:", round(rating, 2))
 
 def least_misery_method(group_ratings, n=10):
     """
@@ -91,7 +91,7 @@ def least_misery_method(group_ratings, n=10):
 
     print("\nTop 10 recommended movies for group users using the least misery method:")
     for movie_title, rating in top_n_movies:
-        print("Movie title:", movie_title, "- Predicted Rating:", round(rating, 2))
+        print(movie_title, "- Predicted Rating:", round(rating, 2))
 
 def pairwise_disagreement(filtered_df, movie_id, group):
     """

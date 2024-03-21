@@ -1,13 +1,30 @@
 import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
+import os
 
 # Load dataset
-def load():
+def load_dataset():
     ratings = pd.read_csv('ml-latest-small/ratings.csv',usecols=range(3))
     movies = pd.read_csv('ml-latest-small/movies.csv',usecols=range(2))
     ratings = pd.merge(ratings, movies)
     return ratings
+
+def load_correlation_matrix():
+    correlation_matrix = pd.read_csv('src/pearsonCorrelationMatrix.csv')
+
+    return correlation_matrix
+
+def does_correlation_matrix_exist():
+    """
+    Check if the correlationMatrix.csv file exists.
+
+    Returns:
+        bool: True if the file exists, False otherwise.
+    """
+    filename = 'src/correlationMatrix.csv'
+   
+    return os.path.exists(filename)
 
 # Compute Pearson correlation between users
 def pearson_similarity_matrix(ratings):
@@ -20,12 +37,16 @@ def pearson_similarity_matrix(ratings):
     Returns:
     - correlation_df (DataFrame): DataFrame containing the Pearson correlation matrix between users.
     """
-
     user_movie_matrix = ratings.pivot_table(index='userId', columns='movieId', values='rating').fillna(0)
     correlation_matrix = np.corrcoef(user_movie_matrix)
+
     np.fill_diagonal(correlation_matrix, 0)  # Setting self-similarity to 0
+
     correlation_df = pd.DataFrame(correlation_matrix, index=user_movie_matrix.index, columns=user_movie_matrix.index)
+    correlation_df.to_csv('pearsonCorrelationMatrix.csv', index=False)
+
     return correlation_df
+    
 
 # Compute cosine similarity between users
 def cosine_similarity_matrix(ratings):
@@ -61,7 +82,10 @@ def get_top_similar_users(similarity_df, target_user, n=40):
     """
     similar_users = similarity_df[target_user].sort_values(ascending=False)[0:n]
     top_similar_users = similar_users.head(10)
-    print("Top 10 most similar users for target user with ID:",target_user,"\n",top_similar_users.index,"\n")
+    print("\nTop 10 most similar users for target user with ID",target_user)
+    for user_index, similarity_score in top_similar_users.items():
+        print("user",user_index, ":", round(similarity_score,2))
+
     return similar_users
 
 def get_user_ratings(ratings, user):
@@ -89,46 +113,45 @@ def predict_ratings(ratings, similarity_df, target_user):
 
     Returns:
     - predicted_ratings (dict): Dictionary containing predicted ratings for movies.
-    """
+     """
     target_user_ratings = ratings[ratings['userId'] == target_user]
     target_user_mean_rating = target_user_ratings['rating'].mean()
     
     predicted_ratings = {}
-    similar_users_mean_rating={}
-
+    similar_users_mean_rating = {}
+    user_ratings_dict = {}
+    
     similar_users = get_top_similar_users(similarity_df, target_user)
-
+    
     similar_users_seen_movies = ratings[ratings['userId'].isin(similar_users.index)]
+    
     unseen_movies = similar_users_seen_movies[~similar_users_seen_movies['movieId'].isin(target_user_ratings['movieId'])][['movieId', 'title']].drop_duplicates() 
-
+    
+    # Pre-calcolate le medie dei rating degli utenti simili
     for user, similarity in similar_users.items():
-        user_ratings = get_user_ratings(ratings, user)
+        user_ratings = ratings[ratings['userId'] == user]
         similar_users_mean_rating[user] = user_ratings['rating'].mean()
+        user_ratings_dict[user] = dict(zip(user_ratings['movieId'], user_ratings['rating']))
 
     for _, row in unseen_movies.iterrows():
-        
         movie_id = row['movieId']
         movie_title = row['title']
-        
+
         weighted_sum = 0
         similarity_sum = 0
         
         for user, similarity in similar_users.items():
-            
-            user_ratings = get_user_ratings(ratings, user)
-            
-            user_rating = user_ratings[user_ratings['movieId'] == movie_id]['rating']
-            
-            if not user_rating.empty:
-                user_rating = user_rating.values[0]
+            if movie_id in user_ratings_dict[user]:
+                user_rating = user_ratings_dict[user][movie_id]
                 weighted_sum += similarity * (user_rating - similar_users_mean_rating[user])
                 similarity_sum += similarity
                 
         if similarity_sum != 0:
             predicted_rating = target_user_mean_rating + (weighted_sum / similarity_sum)
-            predicted_ratings[movie_title] = predicted_rating      
+            predicted_ratings[movie_title] = predicted_rating    
 
     return predicted_ratings
+
 
 # Recommend top movies for target user
 def recommend_movies(predictions, n=10):
