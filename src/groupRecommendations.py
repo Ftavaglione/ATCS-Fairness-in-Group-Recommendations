@@ -171,21 +171,19 @@ def pairwise_disagreement_method(group_ratings, group, n=10):
 
 def hybrid_aggregration_method(group_ratings, users_sat_prev, group, users_recommend_ratings, i, a=0, n=10):
     """
-    Combines ratings from different users within a group using a hybrid method,
-    considering both average rating and minimum rating for each movie.
+    Calculate top recommended movies for a group using the hybrid method.
 
     Args:
-        group_ratings (dict): A dictionary containing movie ratings for each user within the group.
-                              Keys are movie titles, and values are lists of tuples containing user ID and rating.
-        a (float, optional): A parameter controlling the balance between average and minimum ratings.
-                             Value of 0 gives full weight to average rating, and 1 gives full weight to minimum rating.
-                             Defaults to 0.
-        n (int, optional): Number of top recommended movies to return.
-                           Defaults to 10.
+        group_ratings (dict): Dictionary of movie ratings for the group.
+        users_sat_prev (dict): Dictionary containing previous satisfaction levels of users.
+        group (list): List of user IDs in the group.
+        users_recommend_ratings (dict): Dictionary containing recommended ratings for users.
+        i (int): Iteration number.
+        a (float, optional): Weight parameter. Defaults to 0.
+        n (int, optional): Number of top movies to recommend. Defaults to 10.
 
     Returns:
-        dict: Remaining group ratings after recommending top movies.
-              Keys are movie titles, and values are lists of tuples containing user ID and rating.
+        tuple: A tuple containing updated group ratings and users' satisfaction levels.
     """
     users_ratings = {}
     users_sat = {}
@@ -244,7 +242,16 @@ def hybrid_aggregration_method(group_ratings, users_sat_prev, group, users_recom
     return group_ratings, users_sat
 
 def hybrid_pairwise_disagreement(users_sat_prev, group):
+    """
+    Calculate pairwise disagreement among users' satisfaction levels.
 
+    Args:
+        users_sat_prev (dict): Dictionary containing previous satisfaction levels of users.
+        group (list): List of user IDs in the group.
+
+    Returns:
+        float: Pairwise disagreement value.
+    """
     num_members = len(group)
     abs_sum = 0
 
