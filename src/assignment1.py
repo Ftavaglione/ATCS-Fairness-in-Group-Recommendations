@@ -13,11 +13,10 @@ if rs.does_correlation_matrix_exist():
         similarity_df = rs.load_correlation_matrix()
 else:
         similarity_df = rs.pearson_similarity_matrix(ratings)       
-
+        
 # Select target user (e.g. user with ID 1)
 target_user = 1
     
-# Predict ratings for target user
 predictions = rs.predict_ratings(ratings, similarity_df, target_user)
     
 # Recommend top movies for target user

@@ -33,17 +33,24 @@ def get_group_ratings(group_users, ratings, similarity_df):
         dict: A dictionary containing movie titles as keys and a list of tuples (user_id, rating) by group members.
     """
     group_ratings = {}
+    users_ratings = {}
 
     for target_user in group_users:
+
+        if target_user not in users_ratings:
+            users_ratings[target_user] = {}
+
         # Predict ratings for target user
         predictions = rs.predict_ratings(ratings, similarity_df, target_user)
-  
+
+        users_ratings[target_user] = predictions
+
         # Combine rated and recommended movies
         all_movies = [(movie, rating) for movie, rating in predictions.items()]
 
         for movie, rating in all_movies:
             if movie not in group_ratings:
-                group_ratings[movie] = []  # Inizializziamo una lista vuota per ogni film
+                group_ratings[movie] = []  
             group_ratings[movie].append((target_user, rating))
 
     movies_to_remove = []
@@ -55,7 +62,7 @@ def get_group_ratings(group_users, ratings, similarity_df):
     for movie in movies_to_remove:
         del group_ratings[movie]
 
-    return group_ratings
+    return group_ratings, users_ratings
 
 def average_method(group_ratings, n=10):
     """
@@ -127,7 +134,7 @@ def pairwise_disagreement(user_rating_list, group):
             rating_b = get_user_rating(user_rating_list, user_b)
 
             abs_sum += abs(rating_a-rating_b)
-    #return normalized absolute sum of 
+    
     return (2/(num_members*(num_members-1)))*abs_sum
 
 def average_pairwise_disagreement(user_rating_list, group, w=0.3):
@@ -143,7 +150,7 @@ def average_pairwise_disagreement(user_rating_list, group, w=0.3):
         float: Weighted average pairwise disagreement.
     """
     ratings_only = [rating for _, rating in user_rating_list]
-    average_rating = np.mean(ratings_only) #Calculate the average
+    average_rating = np.mean(ratings_only)
 
     disagreement_value = pairwise_disagreement(user_rating_list,group)
     
@@ -161,3 +168,94 @@ def pairwise_disagreement_method(group_ratings, group, n=10):
     print("\nTop 10 recommended movies for group users using the pairwise disagreement method:")
     for movie_title, rating in top_n_movies:
          print(movie_title, "- Predicted Rating:", round(rating, 2))
+
+def hybrid_aggregration_method(group_ratings, users_sat_prev, group, users_recommend_ratings, i, a=0, n=10):
+    """
+    Combines ratings from different users within a group using a hybrid method,
+    considering both average rating and minimum rating for each movie.
+
+    Args:
+        group_ratings (dict): A dictionary containing movie ratings for each user within the group.
+                              Keys are movie titles, and values are lists of tuples containing user ID and rating.
+        a (float, optional): A parameter controlling the balance between average and minimum ratings.
+                             Value of 0 gives full weight to average rating, and 1 gives full weight to minimum rating.
+                             Defaults to 0.
+        n (int, optional): Number of top recommended movies to return.
+                           Defaults to 10.
+
+    Returns:
+        dict: Remaining group ratings after recommending top movies.
+              Keys are movie titles, and values are lists of tuples containing user ID and rating.
+    """
+    users_ratings = {}
+    users_sat = {}
+    hybrid_ratings = {}
+
+    #update dynamically a based on disagreements on previous iteration 
+    if i>0:
+        a = hybrid_pairwise_disagreement(users_sat_prev, group)
+        print("\na has been re-calculated:",round(a,2))
+
+    for movie, ratings in group_ratings.items():
+         
+         ratings_only = [rating for _, rating in ratings]
+
+         average_rating = sum(ratings_only) / len(ratings_only)
+         min_rating = min(ratings_only)
+
+         hybrid_ratings[movie] = (1-a) * average_rating + a * min_rating
+
+    sorted_movies = sorted(hybrid_ratings.items(), key=lambda x: x[1], reverse=True)
+    top_n_group_movies = sorted_movies[:n]
+
+    for movie, rating in top_n_group_movies:
+        for user in group:
+              if user not in users_ratings:
+                users_ratings[user] = {} 
+
+              users_ratings[user][movie] = get_user_rating(group_ratings[movie], user)
+
+    for user in group:
+        recommendListSat = 0
+        groupListSat = 0
+    
+        for movie_title, rating in users_ratings[user].items():
+            groupListSat += rating
+
+        # must obtain top 10 movies recommended to the user
+        top_n_user_movies = rs.recommend_movies(users_recommend_ratings[user])
+
+        for movie, rating in top_n_user_movies:
+            recommendListSat += rating
+
+        if user not in users_sat:
+                users_sat[user] = 0 
+
+        userSat = groupListSat / recommendListSat
+        #abbiamo un dizionario in cui memorizziamo il gradimento di ciascun utente nel gruppo 
+        users_sat[user] = userSat
+        print("user",user,"satisfaction is:",users_sat[user])
+
+    print("\nTop 10 recommended movies for group users using the hybrid method at iteration ",i+1,":")
+    for movie_title, rating in top_n_group_movies:
+         del group_ratings[movie_title]
+         print(movie_title, "- Predicted Rating:", round(rating, 2))
+
+    return group_ratings, users_sat
+
+def hybrid_pairwise_disagreement(users_sat_prev, group):
+
+    num_members = len(group)
+    abs_sum = 0
+
+    for user_a,user_b in itertools.combinations(group,2):
+        if user_a != user_b:
+            satisfaction_a = users_sat_prev[user_a]
+            satisfaction_b = users_sat_prev[user_b]
+
+            abs_sum += abs(satisfaction_a - satisfaction_b)
+    
+    return (2/(num_members*(num_members-1)))*abs_sum
+
+
+

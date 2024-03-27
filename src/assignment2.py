@@ -13,7 +13,7 @@ else:
     
 # Select group of members g (e.g. users with ID 1,2,3)
 group_users = [1,2,3]
-group_ratings = gr.get_group_ratings(group_users, ratings, similarity_df)
+group_ratings, users_ratings = gr.get_group_ratings(group_users, ratings, similarity_df)
 
 gr.average_method(group_ratings)
 gr.least_misery_method(group_ratings)

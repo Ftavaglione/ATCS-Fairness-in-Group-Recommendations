@@ -3,14 +3,25 @@ import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 import os
 
-# Load dataset
 def load_dataset():
+    """
+    Load the dataset consisting of ratings and movies.
+
+    Returns:
+        DataFrame: Merged DataFrame containing ratings and movies information.
+    """
     ratings = pd.read_csv('ml-latest-small/ratings.csv',usecols=range(3))
     movies = pd.read_csv('ml-latest-small/movies.csv',usecols=range(2))
     ratings = pd.merge(ratings, movies)
     return ratings
 
 def load_correlation_matrix():
+    """
+    Load the pre-computed correlation matrix from file.
+
+    Returns:
+        DataFrame: Loaded correlation matrix.
+    """
     correlation_matrix = pd.read_csv('src/pearsonCorrelationMatrix.csv')
 
     return correlation_matrix
@@ -26,16 +37,15 @@ def does_correlation_matrix_exist():
    
     return os.path.exists(filename)
 
-# Compute Pearson correlation between users
 def pearson_similarity_matrix(ratings):
     """
-    Computes the Pearson correlation matrix between users based on their ratings.
+    Compute the Pearson correlation matrix between users based on their ratings.
 
     Parameters:
-    - ratings (DataFrame): DataFrame containing user ratings with columns: 'userId', 'movieId', 'rating'.
+        ratings (DataFrame): DataFrame containing user ratings with columns: 'userId', 'movieId', 'rating'.
 
     Returns:
-    - correlation_df (DataFrame): DataFrame containing the Pearson correlation matrix between users.
+        DataFrame: Pearson correlation matrix between users.
     """
     user_movie_matrix = ratings.pivot_table(index='userId', columns='movieId', values='rating').fillna(0)
     correlation_matrix = np.corrcoef(user_movie_matrix)
@@ -47,16 +57,15 @@ def pearson_similarity_matrix(ratings):
 
     return correlation_df
 
-# Compute cosine similarity between users
 def cosine_similarity_matrix(ratings):
     """
-    Computes the cosine similarity matrix between users based on their ratings.
+    Compute the cosine similarity matrix between users based on their ratings.
 
     Parameters:
-    - ratings (DataFrame): DataFrame containing user ratings with columns: 'userId', 'movieId', 'rating'.
+        ratings (DataFrame): DataFrame containing user ratings with columns: 'userId', 'movieId', 'rating'.
 
     Returns:
-    - similarity_df (DataFrame): DataFrame containing the cosine similarity matrix between users.
+        DataFrame: Cosine similarity matrix between users.
     """
     user_movie_matrix = ratings.pivot_table(index='userId', columns='movieId', values='rating').fillna(0)
    
@@ -66,18 +75,17 @@ def cosine_similarity_matrix(ratings):
     
     return similarity_df
 
-# Get top similar users based on similarity
 def get_top_similar_users(similarity_df, target_user, n=40):
     """
-    Retrieves the top similar users for a target user based on a similarity matrix.
+    Retrieve the top similar users for a target user based on a similarity matrix.
 
     Parameters:
-    - similarity_df (DataFrame): DataFrame containing the similarity matrix between users.
-    - target_user (int): The ID of the target user.
-    - n (int): Number of top similar users to retrieve. Default is 10.
+        similarity_df (DataFrame): DataFrame containing the similarity matrix between users.
+        target_user (int): The ID of the target user.
+        n (int): Number of top similar users to retrieve. Default is 40.
 
     Returns:
-    - similar_users (Series): Series containing the top similar users for the target user.
+        Series: Series containing the top similar users for the target user.
     """
     similar_users = similarity_df[target_user].sort_values(ascending=False)[0:n]
     top_similar_users = similar_users.head(10)
@@ -89,18 +97,17 @@ def get_top_similar_users(similarity_df, target_user, n=40):
 
 def get_user_ratings(ratings, user):
     """
-    Retrieves ratings of a specific user from the ratings DataFrame.
+    Retrieve ratings of a specific user from the ratings DataFrame.
 
     Parameters:
-    - ratings (DataFrame): DataFrame containing user ratings with columns: 'userId', 'movieId', 'rating'.
-    - user (int): The ID of the user.
+        ratings (DataFrame): DataFrame containing user ratings with columns: 'userId', 'movieId', 'rating'.
+        user (int): The ID of the user.
 
     Returns:
-    - user_ratings (DataFrame): DataFrame containing ratings of the specified user.
+        DataFrame: DataFrame containing ratings of the specified user.
     """
     return ratings[ratings['userId'] == user]
 
-# Predict movie ratings for target user
 def predict_ratings(ratings, similarity_df, target_user):
     """
     Predicts movie ratings for a target user based on collaborative filtering.
@@ -126,7 +133,7 @@ def predict_ratings(ratings, similarity_df, target_user):
     
     unseen_movies = similar_users_seen_movies[~similar_users_seen_movies['movieId'].isin(target_user_ratings['movieId'])][['movieId', 'title']].drop_duplicates() 
     
-    # Pre-calcolate le medie dei rating degli utenti simili
+    # Pre-calculate the mean rating of similar users
     for user, similarity in similar_users.items():
         user_ratings = ratings[ratings['userId'] == user]
         similar_users_mean_rating[user] = user_ratings['rating'].mean()
@@ -151,7 +158,6 @@ def predict_ratings(ratings, similarity_df, target_user):
 
     return predicted_ratings
 
-# Recommend top movies for target user
 def recommend_movies(predictions, n=10):
     """
     Recommends top movies for a user based on predicted ratings.
