@@ -23,26 +23,6 @@ You can install these dependencies by running:
 pip install -r requirements.txt
 ```
 
-## Functions
-
-### 1. Pearson Similarity Matrix
-- `pearson_similarity_matrix(ratings)`: Computes the Pearson correlation matrix between users based on their ratings.
-
-### 2. Cosine Similarity Matrix
-- `cosine_similarity_matrix(ratings)`: Computes the cosine similarity matrix between users based on their ratings.
-
-### 3. Get Top Similar Users
-- `get_top_similar_users(similarity_df, target_user, n=10)`: Retrieves the top similar users for a target user based on a similarity matrix.
-
-### 4. Get User Ratings
-- `get_user_ratings(ratings, user)`: Retrieves ratings of a specific user from the ratings DataFrame.
-
-### 5. Predict Ratings
-- `predict_ratings(ratings, similarity_df, target_user)`: Predicts movie ratings for a target user based on collaborative filtering.
-
-### 6. Recommend Movies
-- `recommend_movies(predictions, n=10)`: Recommends top movies for a user based on predicted ratings.
-
 ## Usage
 1. Load the dataset using `ratings = rs.load()` and merge the ratings with movie information.
 2. Compute the similarity matrix using either Pearson correlation or cosine similarity.
@@ -66,11 +46,6 @@ predictions = rs.predict_ratings(ratings, similarity_df, target_user)
 
 # Recommend top movies for target user
 recommended_movies = rs.recommend_movies(predictions)
-
-# Print recommended movies
-print("Top 10 recommended movies for target user with ID:", target_user)
-for movie_title, predicted_rating in recommended_movies:
-    print("Movie title:", movie_title, "- Predicted Rating:", round(predicted_rating, 2))
 ```
 
 ## References
