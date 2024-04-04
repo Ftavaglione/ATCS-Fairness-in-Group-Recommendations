@@ -30,26 +30,5 @@ pip install -r requirements.txt
 4. Predict ratings for the target user.
 5. Recommend top movies for the target user based on the predicted ratings.
 
-## Example
-```python
-# Load dataset
-ratings = rs.load()
-
-# Compute similarity matrix
-similarity_df = rs.pearson_similarity_matrix(ratings)
-
-# Select target user
-target_user = 1
-
-# Predict ratings for target user
-predictions = rs.predict_ratings(ratings, similarity_df, target_user)
-
-# Recommend top movies for target user
-recommended_movies = rs.recommend_movies(predictions)
-```
-
 ## References
 - [MovieLens Latest Small dataset](https://grouplens.org/datasets/movielens/latest/)
-
-
-If you encounter any issues or have suggestions for improvements, please open an issue in the repository.
